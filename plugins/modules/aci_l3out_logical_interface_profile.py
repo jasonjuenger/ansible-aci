@@ -48,6 +48,10 @@ options:
     description:
     - Name of the ingress data plane policing policy.
     type: str
+  ospf_policy:
+    description:
+    - Name of the OSPF policy.
+    type: str
   state:
     description:
     - Use C(present) or C(absent) for adding or removing.
@@ -240,6 +244,9 @@ def main():
         nd_policy=dict(type="str", default=""),
         egress_dpp_policy=dict(type="str", default=""),
         ingress_dpp_policy=dict(type="str", default=""),
+        ospf_policy=dict(type="str", default=""),
+        ospf_auth_type=dict(type="str", default="", choices=[None, "simple", "md5"]),
+        ospf_auth_key=dict(type="str", default=""),
         state=dict(type="str", default="present", choices=["absent", "present", "query"]),
     )
 
@@ -259,6 +266,9 @@ def main():
     nd_policy = module.params.get("nd_policy")
     egress_dpp_policy = module.params.get("egress_dpp_policy")
     ingress_dpp_policy = module.params.get("ingress_dpp_policy")
+    ospf_policy = module.params.get("ospf_policy")
+    ospf_auth_type = module.params.get("ospf_auth_type")
+    ospf_auth_key = module.params.get("ospf_auth_key")
     state = module.params.get("state")
 
     aci = ACIModule(module)
@@ -288,7 +298,12 @@ def main():
             module_object=interface_profile,
             target_filter={"name": interface_profile},
         ),
-        child_classes=["l3extRsNdIfPol", "l3extRsIngressQosDppPol", "l3extRsEgressQosDppPol"],
+        child_classes=[
+            "l3extRsNdIfPol",
+            "l3extRsIngressQosDppPol",
+            "l3extRsEgressQosDppPol",
+            "ospfIfP"
+        ],
     )
 
     aci.get_existing()
@@ -298,6 +313,17 @@ def main():
             dict(l3extRsNdIfPol=dict(attributes=dict(tnNdIfPolName=nd_policy))),
             dict(l3extRsIngressQosDppPol=dict(attributes=dict(tnQosDppPolName=ingress_dpp_policy))),
             dict(l3extRsEgressQosDppPol=dict(attributes=dict(tnQosDppPolName=egress_dpp_policy))),
+            dict(ospfIfP=dict(
+                attributes=dict(
+                    authType=ospf_auth_type,
+                    authKey=ospf_auth_key,
+                ),
+                children=list(
+                    dict(l3extRsIfPol=dict(attributes=dict(
+                        tnOspfIfPolName=ospf_policy
+                    )))
+                )
+            )),
         ]
         aci.payload(aci_class="l3extLIfP", class_config=dict(name=interface_profile), child_configs=child_configs)
 
