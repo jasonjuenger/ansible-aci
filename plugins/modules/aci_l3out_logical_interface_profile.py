@@ -52,6 +52,14 @@ options:
     description:
     - Name of the OSPF policy.
     type: str
+  ospf_auth_type:
+    description:
+    - OSPF authorentication type.
+    type: str
+  ospf_auth_key:
+    description:
+    - OSPF authentication key.
+    type: str
   state:
     description:
     - Use C(present) or C(absent) for adding or removing.
