@@ -102,6 +102,71 @@
     <<: *intf_present
     interface_profile: INTF2
 
+# ADD OSPF PROFILE TO INTERFACE PROFILE
+- name: Add OSPF policy to interface profile (check mode)
+  cisco.aci.aci_l3out_logical_interface_profile:
+    <<: *intf_present
+    ospf_policy: "default"
+  check_mode: yes
+  register: cm_add_ospf_policy
+
+- name: Add OSPF policy to interface profile (normal mode)
+  cisco.aci.aci_l3out_logical_interface_profile: &ospf_present
+    <<: *intf_present
+    ospf_policy: "default"
+  register: nm_add_ospf_policy
+
+- name: Verify add_ospf_policy
+  assert:
+    that:
+      - cm_add_ospf_policy is changed
+      - nm_add_ospf_policy is changed
+      - cm_add_ospf_policy.previous == nm_add_ospf_policy.previous == []
+
+# UPDATE OSPF PROFILE
+- name: Update OSPF policy on interface profile (check mode)
+  cisco.aci.aci_l3out_logical_interface_profile:
+    <<: *ospf_present
+    ospf_auth_type: "simple"
+    ospf_auth_key: "test"
+  check_mode: yes
+  register: cm_update_ospf_policy
+
+- name: Update OSPF policy on interface profile (normal mode)
+  cisco.aci.aci_l3out_logical_interface_profile: &ospf_update
+    <<: *ospf_present
+    ospf_auth_type: "simple"
+    ospf_auth_key: "test"
+  register: nm_update_ospf_policy
+
+- name: Verify update_ospf_policy
+  assert:
+    that:
+      - cm_update_ospf_policy is changed
+      - nm_update_ospf_policy is changed
+      - cm_update_ospf_policy.previous == nm_add_ospf_policy.previous != []
+
+# REMOVE OSPF PROFILE FROM INTERFACE PROFILE
+- name: Remove OSPF policy from interface profile (check mode)
+  cisco.aci.aci_l3out_logical_interface_profile:
+    <<: *ospf_update
+    state: absent
+  check_mode: yes
+  register: cm_remove_ospf_policy
+
+- name: Remove OSPF policy from interface profile (normal mode)
+  cisco.aci.aci_l3out_logical_interface_profile: &ospf_absent
+    <<: *ospf_update
+    state: absent
+  register: nm_remove_ospf_policy
+
+- name: Verify remove_ospf_policy
+  assert:
+    that:
+      - cm_remove_ospf_policy is changed
+      - nm_remove_ospf_policy is changed
+      - cm_remove_ospf_policy.previous == nm_remove_ospf_policy.previous != []
+
 # QUERY ALL PROFILES
 - name: Query all profiles
   cisco.aci.aci_l3out_logical_interface_profile:
