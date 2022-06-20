@@ -253,7 +253,7 @@ def main():
         egress_dpp_policy=dict(type="str", default=""),
         ingress_dpp_policy=dict(type="str", default=""),
         ospf_policy=dict(type="str", default=""),
-        ospf_auth_type=dict(type="str", default="", choices=[None, "simple", "md5"]),
+        ospf_auth_type=dict(type="str", default="none", choices=["none", "simple", "md5"]),
         ospf_auth_key=dict(type="str", default=""),
         state=dict(type="str", default="present", choices=["absent", "present", "query"]),
     )
